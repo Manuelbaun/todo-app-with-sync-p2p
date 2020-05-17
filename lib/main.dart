@@ -73,12 +73,18 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _addTODO() {
-    SyncWrapper.instance.syn.transaction(() {
-      final t = SyncWrapper.instance.todos.create();
-      final n = faker.job.title();
-      t.title = n;
-      t.status = false;
-    });
+    // SyncWrapper.instance.syn.transaction(() {
+    //   final t = SyncWrapper.instance.todos.create();
+    //   final n = faker.job.title();
+    //   t.title = n;
+    //   t.status = false;
+    // });
+
+    // final t = SyncWrapper.instance.todos.create();
+    // t.transact((ref) {
+    //   ref.title = faker.job.title();
+    //   ref.status = false;
+    // });
   }
 
   void _addPEOPLE() {
@@ -88,6 +94,11 @@ class _MyHomePageState extends State<MyHomePage> {
       t.firstName = faker.person.firstName();
       t.lastName = faker.person.lastName();
       t.age = faker.randomGenerator.integer(80, min: 20);
+    });
+    final t2 = SyncWrapper.instance.assignees.create().transact((ref) {
+      ref.firstName = faker.person.firstName();
+      ref.lastName = faker.person.lastName();
+      ref.age = faker.randomGenerator.integer(80, min: 20);
     });
   }
 
@@ -149,7 +160,7 @@ class _MyHomePageState extends State<MyHomePage> {
               IconButton(
                 icon: Icon(Icons.add),
                 color: Colors.green,
-                onPressed: _addPEOPLE,
+                onPressed: () => _addPEOPLE(),
               )
             ]),
             StreamBuilder<Set<Assignee>>(
@@ -376,7 +387,6 @@ class DragZoneAssignee extends StatelessWidget {
         );
       },
       onWillAccept: (data) {
-        print(data);
         return true;
       },
       onAccept: (data) {
