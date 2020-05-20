@@ -1,4 +1,5 @@
 import 'package:sync_layer/index.dart';
+import 'package:sync_layer/logger/index.dart';
 import 'package:sync_layer/sync/abstract/index.dart';
 import 'package:sync_layer/sync/index.dart';
 
@@ -25,9 +26,24 @@ class SyncWrapper {
       // create first container by type
       _todos = _syn.registerObjectType<Todo>('todos', (c, id) => Todo(c, id: id));
       _assignees = _syn.registerObjectType<Assignee>('assignee', (c, id) => Assignee(c, id: id));
+      _syncArray = syn.registerObjectType<SyncString>('syncarray', (c, id) => SyncString(c, id: id));
+
+      // setupListener();
     } else {
       throw AssertionError('cant create this class twice?');
     }
+  }
+
+  void setupListener() {
+    syncArray.changeStream.listen((objs) {
+      objs.forEach((o) => logger.info(o.entries.toString()));
+    });
+
+    todos.changeStream.listen((objs) {
+      objs.forEach((o) => logger.info(o.toString()));
+    });
+
+    assignees.changeStream.listen((objs) => objs.forEach((o) => logger.info(o.toString())));
   }
 
   SyncLayerProtocol _protocol;
@@ -41,4 +57,7 @@ class SyncWrapper {
 
   SyncableObjectContainer<Assignee> get assignees => _assignees;
   SyncableObjectContainer<Assignee> _assignees;
+
+  SyncableObjectContainer<SyncString> get syncArray => _syncArray;
+  SyncableObjectContainer<SyncString> _syncArray;
 }

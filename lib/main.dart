@@ -2,13 +2,17 @@ import 'dart:io';
 
 import 'package:faker/faker.dart';
 import 'package:flutter/material.dart';
+import 'package:todo_app/sync/dao.dart';
+import 'package:todo_app/sync/index.dart';
+import 'package:todo_app/widgets/assignes_widgets.dart';
 
-import 'sync/dao.dart';
-import 'sync/index.dart';
+import 'package:todo_app/widgets/simple_text_editor_widget.dart';
+import 'package:todo_app/widgets/todo_widgets.dart';
 
 int localNodeName;
 void main(List<String> arguments) {
-  localNodeName = faker.randomGenerator.integer(99999);
+  localNodeName = faker.randomGenerator.integer(10);
+  SyncWrapper.getInstance(localNodeName);
   runApp(MyApp());
 }
 
@@ -28,11 +32,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key) {
-    syncWrapper = SyncWrapper.getInstance(localNodeName);
-  }
-
-  SyncWrapper syncWrapper;
+  MyHomePage({Key key, this.title}) : super(key: key) {}
 
   final String title;
 
@@ -73,36 +73,30 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _addTODO() {
-    // SyncWrapper.instance.syn.transaction(() {
-    //   final t = SyncWrapper.instance.todos.create();
-    //   final n = faker.job.title();
-    //   t.title = n;
-    //   t.status = false;
+    final text = SyncWrapper.instance.syncArray.create();
+    final title = faker.job.title();
+    // text.transact((ref) {
+    for (var i = 0; i < title.length; i++) {
+      text.add(title[i]);
+    }
     // });
 
-    // final t = SyncWrapper.instance.todos.create();
-    // t.transact((ref) {
-    //   ref.title = faker.job.title();
-    //   ref.status = false;
-    // });
+    SyncWrapper.instance.todos.create()
+      ..transact((ref) {
+        ref.title = text;
+        ref.status = false;
+      });
   }
 
   void _addPEOPLE() {
-    SyncWrapper.instance.syn.transaction(() {
-      final t = SyncWrapper.instance.assignees.create();
-
-      t.firstName = faker.person.firstName();
-      t.lastName = faker.person.lastName();
-      t.age = faker.randomGenerator.integer(80, min: 20);
-    });
-    final t2 = SyncWrapper.instance.assignees.create().transact((ref) {
-      ref.firstName = faker.person.firstName();
-      ref.lastName = faker.person.lastName();
-      ref.age = faker.randomGenerator.integer(80, min: 20);
-    });
+    SyncWrapper.instance.assignees.create()
+      ..transact((ref) {
+        ref.firstName = faker.person.firstName();
+        ref.lastName = faker.person.lastName();
+        ref.age = faker.randomGenerator.integer(80, min: 20);
+      });
   }
 
-  Map<String, TextEditingController> todoTitles = {};
   Map<String, TextEditingController> firstName = {};
 
   @override
@@ -138,11 +132,24 @@ class _MyHomePageState extends State<MyHomePage> {
         padding: const EdgeInsets.all(8.0),
         child: Container(
           constraints: BoxConstraints.expand(),
-          child: Row(
+          child: Column(
             children: [
-              Expanded(child: buildTodos(), flex: 1),
-              VerticalDivider(),
-              Expanded(child: buildAssignes(), flex: 1),
+              Expanded(
+                flex: 1,
+                child: Row(
+                  children: [
+                    Expanded(child: buildTodos(), flex: 1),
+                    VerticalDivider(),
+                    Expanded(child: buildAssignes(), flex: 1),
+                  ],
+                ),
+              ),
+              Expanded(
+                  flex: 1,
+                  child: SimpleSyncableTextField(
+                    id: '00',
+                    initValue: '',
+                  ))
             ],
           ),
         ),
@@ -168,7 +175,13 @@ class _MyHomePageState extends State<MyHomePage> {
                 initialData: {},
                 builder: (context, snap) {
                   if (snap.connectionState == ConnectionState.waiting)
-                    return Center(child: Container(width: 100, height: 100, child: Text("Waiting on people")));
+                    return Center(
+                        child: Container(
+                            width: 100,
+                            height: 100,
+                            child: Text(
+                              "Waiting on people",
+                            )));
 
                   if (snap.hasData) {
                     final people = SyncWrapper.instance.assignees.allObjects();
@@ -215,7 +228,17 @@ class _MyHomePageState extends State<MyHomePage> {
                                     )
                                   ],
                                 ),
-                                subtitle: Container(width: 120, child: Text(p.todo?.title ?? 'no todo yet')),
+                                subtitle: Container(
+                                    width: 120,
+                                    child: p.todo != null
+                                        ? StreamBuilder<List<dynamic>>(
+                                            stream: p.todo.title.onChange,
+                                            builder: (context, snapshot) {
+                                              final str = p.todo.title.value ?? '... loading';
+
+                                              return Text(str);
+                                            })
+                                        : Text('not assigned yet2')),
                                 trailing: Container(
                                   constraints: BoxConstraints.expand(width: 110),
                                   child: ButtonBar(
@@ -227,7 +250,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                       IconButton(
                                         icon: Icon(Icons.cancel),
                                         color: Colors.red,
-                                        onPressed: () => p.tombstone = true,
+                                        onPressed: () => p.delete(),
                                       ),
                                     ],
                                   ),
@@ -268,34 +291,39 @@ class _MyHomePageState extends State<MyHomePage> {
 
                     return Container(
                         key: Key("${todos.length}"),
-                        height: 300,
-                        width: 600,
+                        // height: 300,
+                        // width: 600,
+                        constraints: BoxConstraints.tight(Size(600, 300)),
                         child: ListView.builder(
                           itemCount: todos.length,
                           itemBuilder: (ctx, index) {
                             final todo = todos[todos.length - 1 - index];
 
-                            if (todoTitles[todo.id] == null) {
-                              todoTitles[todo.id] = TextEditingController(text: todo.title);
-                              todoTitles[todo.id].addListener(() {
-                                if (todo.title != todoTitles[todo.id].text) {
-                                  todo.title = todoTitles[todo.id].text;
-                                }
-                              });
-                            } else {
-                              // copy time!! => :cry
-                              todoTitles[todo.id].value = todoTitles[todo.id].value.copyWith(
-                                    text: todo.title,
-                                    selection: todoTitles[todo.id].value.selection,
-                                  );
-                            }
+                            // if (todoTitles[todo.id] == null) {
+                            //   todoTitles[todo.id] = TextEditingController(text: todo.title);
+                            //   todoTitles[todo.id].addListener(() {
+                            //     if (todo.title != todoTitles[todo.id].text) {
+                            //       todo.title = todoTitles[todo.id].text;
+                            //     }
+                            //   });
+                            // } else {
+                            //   // copy time!! => :cry
+                            //   todoTitles[todo.id].value = todoTitles[todo.id].value.copyWith(
+                            //         text: todo.title,
+                            //         selection: todoTitles[todo.id].value.selection,
+                            //       );
+                            // }
 
+                            // TextField(controller: todoTitles[todo.id]),
                             return ListTile(
                                 key: Key(todo.id),
                                 leading: DragZoneTodo(item: todo),
-                                title: TextField(controller: todoTitles[todo.id]),
-                                subtitle:
-                                    Container(width: 120, child: Text(todo.assignee?.firstName ?? 'no assignee yet')),
+                                title: SimpleSyncableTextField(id: '00', text: todo.title),
+                                subtitle: Container(
+                                    width: 120,
+                                    child: Text(
+                                      todo.assignee?.firstName ?? 'no assignee yet',
+                                    )),
                                 trailing: Container(
                                   constraints: BoxConstraints.expand(width: 110),
                                   child: ButtonBar(
@@ -312,7 +340,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                       IconButton(
                                         icon: Icon(Icons.cancel),
                                         color: Colors.red,
-                                        onPressed: () => todo.tombstone = true,
+                                        onPressed: () => todo.delete(),
                                       ),
                                     ],
                                   ),
@@ -326,105 +354,5 @@ class _MyHomePageState extends State<MyHomePage> {
                 }),
           ],
         ));
-  }
-}
-
-class AssigneIconDrag extends StatelessWidget {
-  const AssigneIconDrag({
-    Key key,
-    @required this.item,
-  }) : super(key: key);
-
-  final Assignee item;
-
-  @override
-  Widget build(BuildContext context) {
-    return Draggable<Assignee>(
-      data: item,
-      child: Icon(Icons.people, color: Colors.green),
-      feedback: Icon(Icons.people, color: Colors.pink),
-      childWhenDragging: Icon(Icons.people),
-    );
-  }
-}
-
-class TodoIconDrag extends StatelessWidget {
-  const TodoIconDrag({
-    Key key,
-    @required this.item,
-  }) : super(key: key);
-
-  final Todo item;
-
-  @override
-  Widget build(BuildContext context) {
-    return Draggable<Todo>(
-      data: item,
-      child: Icon(Icons.work, color: Colors.green),
-      feedback: Icon(Icons.work, color: Colors.pink),
-      childWhenDragging: Icon(Icons.work),
-    );
-  }
-}
-
-class DragZoneAssignee extends StatelessWidget {
-  const DragZoneAssignee({
-    Key key,
-    this.item,
-  }) : super(key: key);
-  final Assignee item;
-  @override
-  Widget build(BuildContext context) {
-    return DragTarget<Todo>(
-      builder: (BuildContext context, List<Todo> incoming, List rejected) {
-        return Container(
-          child: AssigneIconDrag(item: item),
-          width: 50,
-          height: 50,
-          // margin: EdgeInsets.all(100.0),
-          color: Colors.blueAccent,
-          // decoration: BoxDecoration(color: Colors.orange, shape: BoxShape.circle),
-        );
-      },
-      onWillAccept: (data) {
-        return true;
-      },
-      onAccept: (data) {
-        print(data);
-        item.todo = data;
-      },
-    );
-  }
-}
-
-class DragZoneTodo extends StatelessWidget {
-  const DragZoneTodo({
-    Key key,
-    this.item,
-  }) : super(key: key);
-  final Todo item;
-
-  @override
-  Widget build(BuildContext context) {
-    return DragTarget<Assignee>(
-      builder: (BuildContext context, List<Assignee> incoming, List rejected) {
-        return Container(
-          child: TodoIconDrag(item: item),
-          width: 50,
-          height: 50,
-          // margin: EdgeInsets.all(100.0),
-          color: Colors.black,
-          // decoration: BoxDecoration(color: Colors.orange, shape: BoxShape.circle),
-        );
-      },
-      onWillAccept: (data) {
-        // print(data);
-        return true;
-      },
-      onAccept: (data) {
-        print(data);
-        item.assignee = data;
-      },
-    );
   }
 }

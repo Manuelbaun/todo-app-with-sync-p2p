@@ -1,11 +1,14 @@
-import 'package:sync_layer/sync/abstract/index.dart';
+import 'dart:async';
+
+import 'package:sync_layer/sync/abstract/acess_proxy.dart';
 import 'package:sync_layer/sync/index.dart';
+import 'package:sync_layer/sync/syncable_causal_tree.dart';
 
 class Todo extends SyncableObjectImpl<int, Todo> {
-  Todo(Accessor accessor, {String id, String title}) : super(id, accessor);
+  Todo(AccessProxy proxy, {String id, String title}) : super(proxy, id);
 
-  String get title => super[0];
-  set title(String v) => super[0] = v;
+  SyncString get title => super[0];
+  set title(SyncString v) => super[0] = v;
 
   bool get status => super[1];
   set status(bool v) => super[1] = v;
@@ -21,7 +24,7 @@ class Todo extends SyncableObjectImpl<int, Todo> {
 }
 
 class Assignee extends SyncableObjectImpl<int, Assignee> {
-  Assignee(Accessor accessor, {String id, String title}) : super(id, accessor);
+  Assignee(AccessProxy proxy, {String id, String title}) : super(proxy, id);
 
   String get firstName => super[0];
   set firstName(String v) => super[0] = v;
@@ -40,3 +43,13 @@ class Assignee extends SyncableObjectImpl<int, Assignee> {
     return 'Assignee($id, $firstName, $lastName, $age : $lastUpdated)';
   }
 }
+
+class SyncString extends SyncableCausalTree {
+  SyncString(AccessProxy proxy, {String id}) : super(proxy, id);
+
+  String get value => values.join('');
+}
+
+// class SyncArray extends SyncableCausalTree {
+//   SyncText(AccessProxy proxy, {String id}) : super(proxy, id);
+// }
