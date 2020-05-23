@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:sync_layer/sync/abstract/acess_proxy.dart';
 import 'package:sync_layer/sync/index.dart';
 import 'package:sync_layer/sync/syncable_causal_tree.dart';
@@ -14,7 +12,13 @@ class Todo extends SyncableObjectImpl<int, Todo> {
   set status(bool v) => super[1] = v;
 
   Assignee get assignee => super[2];
-  set assignee(Assignee v) => super[2] = v;
+  set assignee(Assignee v) {
+    super[2] = v;
+
+    v?.once(COMMON_EVENTS.DELETE, (data) {
+      assignee = null;
+    });
+  }
 
   String toStringSimple() {
     if (tombstone) return 'Todo($id, deleted: $tombstone)';
@@ -35,8 +39,14 @@ class Assignee extends SyncableObjectImpl<int, Assignee> {
   int get age => super[2];
   set age(int v) => super[2] = v;
 
-  Todo get todo => super[3];
-  set todo(Todo v) => super[3] = v;
+  Todo get todo => super[3] ?? null;
+  set todo(Todo v) {
+    super[3] = v;
+
+    v?.once(COMMON_EVENTS.DELETE, (data) {
+      todo = null;
+    });
+  }
 
   String toStringSimple() {
     if (tombstone) return 'Assignee($id, deleted: $tombstone)';
@@ -44,12 +54,8 @@ class Assignee extends SyncableObjectImpl<int, Assignee> {
   }
 }
 
-class SyncString extends SyncableCausalTree {
+class SyncString extends SyncableCausalTree<String, SyncString> {
   SyncString(AccessProxy proxy, {String id}) : super(proxy, id);
 
   String get value => values.join('');
 }
-
-// class SyncArray extends SyncableCausalTree {
-//   SyncText(AccessProxy proxy, {String id}) : super(proxy, id);
-// }

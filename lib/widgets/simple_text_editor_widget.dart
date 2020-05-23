@@ -30,7 +30,6 @@ class _SimpleSyncableTextFieldState extends State<SimpleSyncableTextField> {
   void initState() {
     final dao = SyncWrapper.instance.syncArray;
     LogicalKeyboardKey key;
-    RegExp re = RegExp(r'^[a-zA-Z0-9,;.:]$');
 
     if (widget.text == null) {
       syncableText = dao.read(widget.id) ?? dao.create(widget.id);
@@ -39,7 +38,7 @@ class _SimpleSyncableTextFieldState extends State<SimpleSyncableTextField> {
         /// insert
         ///
         for (var i = 0; i < widget.initValue.length; i++) {
-          syncableText.add(widget.initValue[i]);
+          syncableText.push(widget.initValue[i]);
         }
       }
     } else {
@@ -56,11 +55,7 @@ class _SimpleSyncableTextFieldState extends State<SimpleSyncableTextField> {
 
     focusNode = FocusNode(onKey: (FocusNode node, RawKeyEvent event) {
       key = event.logicalKey;
-      // print(event.runtimeType);
-      // print(key);
 
-      /// the editor
-      // print(selection);
       if (event is RawKeyDownEvent) {
         final index = (selection.baseOffset - 1) < 0 ? 0 : (selection.baseOffset - 1);
         final char = key?.keyLabel ?? '';
@@ -92,7 +87,6 @@ class _SimpleSyncableTextFieldState extends State<SimpleSyncableTextField> {
       );
     });
 
-    // print(syncableText);
     super.initState();
   }
 
@@ -107,7 +101,7 @@ class _SimpleSyncableTextFieldState extends State<SimpleSyncableTextField> {
         decoration: InputDecoration(
           hintText: "Enter your text here",
           border: OutlineInputBorder(),
-          labelText: 'Post Body',
+          labelText: 'Shareable Text',
         ),
       ),
     );

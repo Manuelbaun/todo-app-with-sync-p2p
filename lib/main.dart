@@ -75,11 +75,11 @@ class _MyHomePageState extends State<MyHomePage> {
   void _addTODO() {
     final text = SyncWrapper.instance.syncArray.create();
     final title = faker.job.title();
-    // text.transact((ref) {
-    for (var i = 0; i < title.length; i++) {
-      text.add(title[i]);
-    }
-    // });
+    text.transact((self) {
+      for (var i = 0; i < title.length; i++) {
+        self.push(title[i]);
+      }
+    });
 
     SyncWrapper.instance.todos.create()
       ..transact((ref) {
@@ -163,6 +163,7 @@ class _MyHomePageState extends State<MyHomePage> {
         // color: Colors.greenAccent,
         child: Column(
           children: [
+            Title(color: Colors.black, child: Text('People')),
             ButtonBar(children: [
               IconButton(
                 icon: Icon(Icons.add),
@@ -186,79 +187,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   if (snap.hasData) {
                     final people = SyncWrapper.instance.assignees.allObjects();
 
-                    return Container(
-                        key: Key("${people.length}"),
-                        height: 300,
-                        width: 600,
-                        child: ListView.builder(
-                          itemCount: people.length,
-                          itemBuilder: (ctx, index) {
-                            final p = people[people.length - 1 - index];
-
-                            if (firstName[p.id] == null) {
-                              firstName[p.id] = TextEditingController(text: p.firstName);
-                              firstName[p.id].addListener(() {
-                                if (p.firstName != firstName[p.id].text) {
-                                  p.firstName = firstName[p.id].text;
-                                }
-                              });
-                            } else {
-                              // copy time!! => :cry
-                              firstName[p.id].value = firstName[p.id]
-                                  .value
-                                  .copyWith(text: p.firstName, selection: firstName[p.id].value.selection);
-                            }
-
-                            return ListTile(
-                                key: Key(p.id),
-                                leading: DragZoneAssignee(item: p),
-                                title: Row(
-                                  children: [
-                                    Expanded(
-                                      child: TextField(controller: firstName[p.id]),
-                                      flex: 2,
-                                    ),
-                                    Expanded(
-                                      child: Text(p.lastName),
-                                      flex: 2,
-                                    ),
-                                    Expanded(
-                                      child: Text(p.age.toString()),
-                                      flex: 1,
-                                    )
-                                  ],
-                                ),
-                                subtitle: Container(
-                                    width: 120,
-                                    child: p.todo != null
-                                        ? StreamBuilder<List<dynamic>>(
-                                            stream: p.todo.title.onChange,
-                                            builder: (context, snapshot) {
-                                              final str = p.todo.title.value ?? '... loading';
-
-                                              return Text(str);
-                                            })
-                                        : Text('not assigned yet2')),
-                                trailing: Container(
-                                  constraints: BoxConstraints.expand(width: 110),
-                                  child: ButtonBar(
-                                    alignment: MainAxisAlignment.start,
-                                    layoutBehavior: ButtonBarLayoutBehavior.padded,
-                                    mainAxisSize: MainAxisSize.max,
-                                    buttonAlignedDropdown: connected,
-                                    children: [
-                                      IconButton(
-                                        icon: Icon(Icons.cancel),
-                                        color: Colors.red,
-                                        onPressed: () => p.delete(),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                                // onTap: () => todo.status = !todo.status,
-                                );
-                          },
-                        ));
+                    return PeopleWidget(people: people, firstName: firstName, connected: connected);
                   }
                   return Text("no one to asign");
                 }),
@@ -272,6 +201,7 @@ class _MyHomePageState extends State<MyHomePage> {
         // color: Colors.grey,
         child: Column(
           children: [
+            Title(color: Colors.black, child: Text('TODOs')),
             ButtonBar(children: [
               IconButton(
                 icon: Icon(Icons.add),
@@ -289,66 +219,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   if (snap.hasData) {
                     final todos = SyncWrapper.instance.todos.allObjects();
 
-                    return Container(
-                        key: Key("${todos.length}"),
-                        // height: 300,
-                        // width: 600,
-                        constraints: BoxConstraints.tight(Size(600, 300)),
-                        child: ListView.builder(
-                          itemCount: todos.length,
-                          itemBuilder: (ctx, index) {
-                            final todo = todos[todos.length - 1 - index];
-
-                            // if (todoTitles[todo.id] == null) {
-                            //   todoTitles[todo.id] = TextEditingController(text: todo.title);
-                            //   todoTitles[todo.id].addListener(() {
-                            //     if (todo.title != todoTitles[todo.id].text) {
-                            //       todo.title = todoTitles[todo.id].text;
-                            //     }
-                            //   });
-                            // } else {
-                            //   // copy time!! => :cry
-                            //   todoTitles[todo.id].value = todoTitles[todo.id].value.copyWith(
-                            //         text: todo.title,
-                            //         selection: todoTitles[todo.id].value.selection,
-                            //       );
-                            // }
-
-                            // TextField(controller: todoTitles[todo.id]),
-                            return ListTile(
-                                key: Key(todo.id),
-                                leading: DragZoneTodo(item: todo),
-                                title: SimpleSyncableTextField(id: '00', text: todo.title),
-                                subtitle: Container(
-                                    width: 120,
-                                    child: Text(
-                                      todo.assignee?.firstName ?? 'no assignee yet',
-                                    )),
-                                trailing: Container(
-                                  constraints: BoxConstraints.expand(width: 110),
-                                  child: ButtonBar(
-                                    alignment: MainAxisAlignment.start,
-                                    layoutBehavior: ButtonBarLayoutBehavior.padded,
-                                    mainAxisSize: MainAxisSize.max,
-                                    buttonAlignedDropdown: connected,
-                                    children: [
-                                      IconButton(
-                                        icon: Icon(Icons.check_circle),
-                                        color: todo.status ? Colors.green : Colors.grey,
-                                        onPressed: () => todo.status = !todo.status,
-                                      ),
-                                      IconButton(
-                                        icon: Icon(Icons.cancel),
-                                        color: Colors.red,
-                                        onPressed: () => todo.delete(),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                                // onTap: () => todo.status = !todo.status,
-                                );
-                          },
-                        ));
+                    return TodoWidget(todos: todos, connected: connected);
                   }
                   return Text("no Todos");
                 }),
