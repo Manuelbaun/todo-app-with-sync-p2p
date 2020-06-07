@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:icon_shadow/icon_shadow.dart';
 import 'package:sync_layer/logger/logger.dart';
 import 'package:todo_app/sync/dao.dart';
 import 'package:todo_app/widgets/simple_text_editor_widget.dart';
 
 class DragZoneTodo extends StatelessWidget {
-  const DragZoneTodo({Key key, this.item}) : super(key: key);
+  const DragZoneTodo({Key key, this.item, this.connected}) : super(key: key);
   final Todo item;
+  final bool connected;
 
   @override
   Widget build(BuildContext context) {
     return DragTarget<Assignee>(
       builder: (BuildContext context, List<Assignee> incoming, List rejected) {
         return Container(
-          child: TodoIconDrag(item: item),
+          child: TodoIconDrag(item: item, connected: connected),
           width: 50,
           height: 50,
           // margin: EdgeInsets.all(100.0),
-          color: Colors.black,
+          // color: Colors.black,
           // decoration: BoxDecoration(color: Colors.orange, shape: BoxShape.circle),
         );
       },
@@ -33,16 +35,17 @@ class DragZoneTodo extends StatelessWidget {
 }
 
 class TodoIconDrag extends StatelessWidget {
-  const TodoIconDrag({Key key, @required this.item}) : super(key: key);
+  const TodoIconDrag({Key key, @required this.item, this.connected = false}) : super(key: key);
 
   final Todo item;
+  final bool connected;
 
   @override
   Widget build(BuildContext context) {
     return Draggable<Todo>(
       data: item,
-      child: Icon(Icons.work, color: Colors.green),
-      feedback: Icon(Icons.work, color: Colors.pink),
+      child: IconShadowWidget(Icon(Icons.work, color: connected ? Colors.green : Colors.red)),
+      feedback: IconShadowWidget(Icon(Icons.work, color: Colors.pink)),
       childWhenDragging: Icon(Icons.work),
     );
   }
@@ -62,9 +65,6 @@ class TodoWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
         key: Key("${todos.length}"),
-        // height: 300,
-        // width: 600,
-        constraints: BoxConstraints.tight(Size(600, 300)),
         child: ListView.builder(
           itemCount: todos.length,
           itemBuilder: (ctx, index) {
@@ -72,7 +72,10 @@ class TodoWidget extends StatelessWidget {
 
             return ListTile(
                 key: Key(todo.id),
-                leading: DragZoneTodo(item: todo),
+                leading: DragZoneTodo(
+                  item: todo,
+                  connected: todo.assignee != null,
+                ),
                 title: SimpleSyncableTextField(id: '00', text: todo.title),
                 subtitle: Container(
                   width: 120,

@@ -1,35 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:icon_shadow/icon_shadow.dart';
 import 'package:sync_layer/logger/logger.dart';
 import 'package:todo_app/sync/dao.dart';
 
 class AssigneIconDrag extends StatelessWidget {
-  const AssigneIconDrag({
-    Key key,
-    @required this.item,
-  }) : super(key: key);
+  const AssigneIconDrag({Key key, @required this.item, this.connected}) : super(key: key);
 
   final Assignee item;
+  final bool connected;
 
   @override
   Widget build(BuildContext context) {
     return Draggable<Assignee>(
       data: item,
-      child: Icon(Icons.people, color: Colors.deepOrange, size: 40),
-      feedback: Icon(Icons.people, color: Colors.pink),
-      childWhenDragging: Icon(Icons.people),
+      child: IconShadowWidget(Icon(Icons.people, color: connected ? Colors.green : Colors.red, size: 40),
+          showShadow: true),
+      feedback: IconShadowWidget(Icon(Icons.people, color: Colors.grey)),
+      childWhenDragging: IconShadowWidget(Icon(Icons.people), showShadow: true),
     );
   }
 }
 
 class DragZoneAssignee extends StatelessWidget {
-  const DragZoneAssignee({Key key, this.item}) : super(key: key);
+  const DragZoneAssignee({Key key, this.item, this.connected}) : super(key: key);
   final Assignee item;
+  final bool connected;
+
   @override
   Widget build(BuildContext context) {
     return DragTarget<Todo>(
       builder: (BuildContext context, List<Todo> incoming, List rejected) {
         return Container(
-          child: AssigneIconDrag(item: item),
+          child: AssigneIconDrag(item: item, connected: connected),
           width: 50,
           height: 50,
         );
@@ -61,9 +63,9 @@ class PeopleWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
         key: Key("${people.length}"),
-        height: 300,
-        width: 600,
         child: ListView.builder(
+            shrinkWrap: true,
+            scrollDirection: Axis.vertical,
             itemCount: people.length,
             itemBuilder: (ctx, index) {
               final p = people[people.length - 1 - index];
@@ -83,7 +85,10 @@ class PeopleWidget extends StatelessWidget {
 
               return ListTile(
                   key: Key(p.id),
-                  leading: DragZoneAssignee(item: p),
+                  leading: DragZoneAssignee(
+                    item: p,
+                    connected: p.todo != null,
+                  ),
                   title: Row(
                     children: [
                       Expanded(

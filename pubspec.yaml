@@ -12,7 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
   faker: ^1.2.1
-
+  icon_shadow: ^1.0.1
   sync_layer:
     path: ../sync-layer
 
