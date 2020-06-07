@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:faker/faker.dart';
 import 'package:flutter/material.dart';
+import 'package:sync_layer/encoding_extent/index.dart';
 import 'package:todo_app/sync/dao.dart';
 import 'package:todo_app/sync/index.dart';
 import 'package:todo_app/widgets/assignes_widgets.dart';
@@ -97,6 +99,19 @@ class _MyHomePageState extends State<MyHomePage> {
       });
   }
 
+  Uint8List bin;
+  Uint8List zipped;
+  Uint8List state;
+  void save() {
+    final aa = SyncWrapper.instance.syn.atomCache.allAtoms;
+    final s = SyncWrapper.instance.syn.getState();
+    setState(() {
+      bin = msgpackEncode(aa);
+      zipped = zlib.encode(bin);
+      state = msgpackEncode(s.toMap());
+    });
+  }
+
   Map<String, TextEditingController> firstName = {};
 
   @override
@@ -122,6 +137,17 @@ class _MyHomePageState extends State<MyHomePage> {
               color: Colors.white,
               child: Icon(Icons.call_end, color: Colors.red[400]),
             ),
+            MaterialButton(
+              onPressed: save,
+              color: Colors.white,
+              child: Icon(Icons.save, color: Colors.blue[400]),
+            ),
+            VerticalDivider(),
+            Text('Size: ${bin?.length}'),
+            VerticalDivider(),
+            Text('zipped: ${zipped?.length}'),
+            VerticalDivider(),
+            Text('State: ${state?.length} ')
           ],
         ),
       ),
