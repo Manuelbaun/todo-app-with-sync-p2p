@@ -26,7 +26,7 @@ class SyncWrapper {
       // create first container by type
       _todos = _syn.registerObjectType<Todo>('todos', (c, id) => Todo(c, id: id));
       _assignees = _syn.registerObjectType<Assignee>('assignee', (c, id) => Assignee(c, id: id));
-      _syncArray = syn.registerObjectType<SyncString>('syncarray', (c, id) => SyncString(c, id: id));
+      _syncString = syn.registerObjectType<SyncString>('syncarray', (c, id) => SyncString(c, id: id));
 
       // setupListener();
     } else {
@@ -35,7 +35,7 @@ class SyncWrapper {
   }
 
   void setupListener() {
-    syncArray.changeStream.listen((objs) {
+    syncString.changeStream.listen((objs) {
       objs.forEach((o) => logger.info(o.entries.toString()));
     });
 
@@ -58,6 +58,6 @@ class SyncWrapper {
   SyncableObjectContainer<Assignee> get assignees => _assignees;
   SyncableObjectContainer<Assignee> _assignees;
 
-  SyncableObjectContainer<SyncString> get syncArray => _syncArray;
-  SyncableObjectContainer<SyncString> _syncArray;
+  SyncableObjectContainer<SyncString> get syncString => _syncString;
+  SyncableObjectContainer<SyncString> _syncString;
 }

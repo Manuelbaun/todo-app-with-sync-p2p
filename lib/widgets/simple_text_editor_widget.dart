@@ -28,7 +28,7 @@ class _SimpleSyncableTextFieldState extends State<SimpleSyncableTextField> {
 
   @override
   void initState() {
-    final dao = SyncWrapper.instance.syncArray;
+    final dao = SyncWrapper.instance.syncString;
     LogicalKeyboardKey key;
 
     if (widget.text == null) {

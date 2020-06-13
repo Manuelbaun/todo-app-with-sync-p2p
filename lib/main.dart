@@ -75,7 +75,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _addTODO() {
-    final text = SyncWrapper.instance.syncArray.create();
+    final text = SyncWrapper.instance.syncString.create();
     final title = faker.job.title();
     text.transact((self) {
       for (var i = 0; i < title.length; i++) {
@@ -102,13 +102,41 @@ class _MyHomePageState extends State<MyHomePage> {
   Uint8List bin;
   Uint8List zipped;
   Uint8List state;
-  void save() {
-    final aa = SyncWrapper.instance.syn.atomCache.allAtoms;
-    final s = SyncWrapper.instance.syn.getState();
+  void save() async {
+    final allAtoms = SyncWrapper.instance.syn.atomCache.allAtoms;
+    final _state = SyncWrapper.instance.syn.getState().toMap();
+
+    final allA = SyncWrapper.instance.assignees.allObjects();
+    final allAS = allA.map((e) => e.toString()).toList();
+    final allT = SyncWrapper.instance.todos.allObjects();
+    final allTS = allT.map((e) => e.toString()).toList();
+    final allS = SyncWrapper.instance.syncString.allObjects();
+    final allSS = allS.map((e) => e.entriesUnfiltered).toList();
+
+    final todos = msgpackEncode(allAS);
+    final assign = msgpackEncode(allTS);
+    final strr = msgpackEncode(allSS);
+    state = msgpackEncode(_state);
+    bin = msgpackEncode(allAtoms);
+
+    final newPath = Directory.current.path + '\\' + 'serr';
+    final dir = Directory(newPath)..createSync(recursive: true);
+    final path = dir.path + '\\';
+    final site = SyncWrapper.instance.syn.site;
+    final file = File(path + '$site').openWrite();
+
+    file.write(bin);
+    file.write(state);
+    file.write(todos);
+    file.write(assign);
+    file.write(strr);
+
+    file.close();
+
     setState(() {
-      bin = msgpackEncode(aa);
+      bin = bin;
       zipped = zlib.encode(bin);
-      state = msgpackEncode(s.toMap());
+      state = state;
     });
   }
 
@@ -142,6 +170,8 @@ class _MyHomePageState extends State<MyHomePage> {
               color: Colors.white,
               child: Icon(Icons.save, color: Colors.blue[400]),
             ),
+            VerticalDivider(),
+            Text('Site ID: ${SyncWrapper.instance.syn.site}'),
             VerticalDivider(),
             Text('Size: ${bin?.length}'),
             VerticalDivider(),

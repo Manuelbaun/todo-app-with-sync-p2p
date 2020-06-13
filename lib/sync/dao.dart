@@ -2,19 +2,17 @@ import 'package:sync_layer/sync/abstract/acess_proxy.dart';
 import 'package:sync_layer/sync/index.dart';
 import 'package:sync_layer/sync/syncable_causal_tree.dart';
 
-class Todo extends SyncableObjectImpl<int, Todo> {
+class Todo extends SyncableMap<int, Todo> {
   Todo(AccessProxy proxy, {String id, String title}) : super(proxy, id);
 
   SyncString get title => super[0];
   set title(SyncString v) => super[0] = v;
-
   bool get status => super[1];
   set status(bool v) => super[1] = v;
 
   Assignee get assignee => super[2];
   set assignee(Assignee v) {
     super[2] = v;
-
     v?.once(COMMON_EVENTS.DELETE, (data) {
       assignee = null;
     });
@@ -27,22 +25,19 @@ class Todo extends SyncableObjectImpl<int, Todo> {
   }
 }
 
-class Assignee extends SyncableObjectImpl<int, Assignee> {
+class Assignee extends SyncableMap<int, Assignee> {
   Assignee(AccessProxy proxy, {String id, String title}) : super(proxy, id);
 
   String get firstName => super[0];
   set firstName(String v) => super[0] = v;
-
   String get lastName => super[1];
   set lastName(String v) => super[1] = v;
-
   int get age => super[2];
   set age(int v) => super[2] = v;
 
   Todo get todo => super[3] ?? null;
   set todo(Todo v) {
     super[3] = v;
-
     v?.once(COMMON_EVENTS.DELETE, (data) {
       todo = null;
     });
