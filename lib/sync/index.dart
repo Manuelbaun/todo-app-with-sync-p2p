@@ -1,7 +1,7 @@
 import 'package:sync_layer/index.dart';
 import 'package:sync_layer/logger/index.dart';
 import 'package:sync_layer/sync/abstract/index.dart';
-import 'package:sync_layer/sync/index.dart';
+import 'package:sync_layer/sync/sync_layer_impl.dart';
 
 import 'dao.dart';
 
@@ -20,7 +20,7 @@ class SyncWrapper {
 
   SyncWrapper(this.nodeID) {
     if (_instance == null) {
-      _syn = SyncLayerImpl(nodeID);
+      _syn = SynchronizerImpl(nodeID);
       _protocol = SyncLayerProtocol(_syn);
 
       // create first container by type
@@ -49,8 +49,8 @@ class SyncWrapper {
   SyncLayerProtocol _protocol;
   SyncLayerProtocol get protocol => _protocol;
 
-  SyncLayerImpl _syn;
-  SyncLayerImpl get syn => _syn;
+  SynchronizerImpl _syn;
+  SynchronizerImpl get syn => _syn;
 
   SyncableObjectContainer<Todo> get todos => _todos;
   SyncableObjectContainer<Todo> _todos;

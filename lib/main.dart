@@ -13,7 +13,7 @@ import 'package:todo_app/widgets/todo_widgets.dart';
 
 int localNodeName;
 void main(List<String> arguments) {
-  localNodeName = faker.randomGenerator.integer(10);
+  localNodeName = faker.randomGenerator.integer(0xffff);
   SyncWrapper.getInstance(localNodeName);
   runApp(MyApp());
 }
