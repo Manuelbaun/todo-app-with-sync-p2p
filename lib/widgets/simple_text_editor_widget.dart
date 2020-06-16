@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:todo_app/sync/dao.dart';
+import 'package:todo_app/entities/index.dart';
 import 'package:todo_app/sync/index.dart';
 
 class SimpleSyncableTextField extends StatefulWidget {

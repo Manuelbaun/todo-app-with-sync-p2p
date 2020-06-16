@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:icon_shadow/icon_shadow.dart';
 import 'package:sync_layer/logger/logger.dart';
-import 'package:todo_app/sync/dao.dart';
+import 'package:todo_app/entities/index.dart';
 
 class AssigneIconDrag extends StatelessWidget {
   const AssigneIconDrag({Key key, @required this.item, this.connected}) : super(key: key);

@@ -4,7 +4,8 @@ import 'dart:typed_data';
 import 'package:faker/faker.dart';
 import 'package:flutter/material.dart';
 import 'package:sync_layer/encoding_extent/index.dart';
-import 'package:todo_app/sync/dao.dart';
+
+import 'package:todo_app/entities/index.dart';
 import 'package:todo_app/sync/index.dart';
 import 'package:todo_app/widgets/assignes_widgets.dart';
 
