@@ -14,14 +14,14 @@ class Todo extends SyncableMap<int, Todo> {
   bool get status => super[1];
   set status(bool v) => super[1] = v;
 
-  TodoType get group => super[3];
-  set group(TodoType v) {
-    super[3] = v;
+  // TodoType get group => super[3];
+  // set group(TodoType v) {
+  //   super[3] = v;
 
-    v?.once(COMMON_EVENTS.DELETE, (data) {
-      group = null;
-    });
-  }
+  //   v?.once(COMMON_EVENTS.DELETE, (data) {
+  //     group = null;
+  //   });
+  // }
 
   Assignee get assignee => super[2];
   set assignee(Assignee v) {

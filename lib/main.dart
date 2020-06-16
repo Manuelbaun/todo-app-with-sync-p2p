@@ -124,15 +124,16 @@ class _MyHomePageState extends State<MyHomePage> {
     final dir = Directory(newPath)..createSync(recursive: true);
     final path = dir.path + '\\';
     final site = SyncWrapper.instance.syn.site;
-    final file = File(path + '$site').openWrite();
+    final file = File(path + '$site');
 
-    file.write(bin);
-    file.write(state);
-    file.write(todos);
-    file.write(assign);
-    file.write(strr);
 
-    file.close();
+    file.writeAsBytes(bin);
+    file.writeAsBytes(state);
+    file.writeAsBytes(todos);
+    file.writeAsBytes(assign);
+    file.writeAsBytes(strr);
+
+    // file.close();
 
     setState(() {
       bin = bin;
